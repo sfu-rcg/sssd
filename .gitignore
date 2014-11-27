@@ -1,0 +1,13 @@
+.DS_Store
+vendor/
+.ruby-version
+.project
+.librarian/
+.tmp/
+doc/
+spec/fixtures/
+pkg/
+.vagrant/
+.rspec_system
+.bundle/
+.rvmrc
