@@ -37,6 +37,11 @@
 # You can override which packages this module installs with this parameter.
 # Be sure to use an array if it's more than one package.
 #
+# [*manage_cron*]
+# (true|false) Optional. Boolean. Default is true. This parameter will
+# toggle whether or not this module attempts to restart the cron service
+# everytime the sssd service is restarted.
+#
 # === Requires
 # - [ripienaar/concat]
 # - [puppetlab/stdlib]
@@ -63,6 +68,7 @@ class sssd (
   $backends      = {},
   $make_home_dir = false,
   $packages      = $sssd::params::packages,
+  $manage_cron   = true,
 ) inherits sssd::params {
   validate_array($domains)
   validate_array($services)
@@ -70,6 +76,7 @@ class sssd (
   validate_hash($sections)
   validate_hash($backends)
   validate_bool($make_home_dir)
+  validate_bool($manage_cron)
 
   unless empty($backends) {
     create_resources('sssd::domain', $backends)
@@ -111,8 +118,10 @@ class sssd (
     enable      => true,
     subscribe   => Exec['authconfig-sssd'],
   }
-
-  service { $sssd::params::cron_service:
-    subscribe => Service['sssd'],
+  
+  if $manage_cron {
+    service { $sssd::params::cron_service:
+      subscribe => Service['sssd'],
+    }
   }
 }
