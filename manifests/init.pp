@@ -6,19 +6,27 @@
 # Required. Array. For each sssd::domain type you declare, you SHOULD also
 # include the domain name here. This defines the domain lookup order.
 #
+# [*services*]
+# Required. Array. Default is ['nss', 'pam']. For each sssd::service type 
+# you declare, you SHOULD also include the service name here.
+#
+# [*options*]
+# Optional. Hash. Default is an empty hash. Key/value pairs will be used to 
+# set options underneath the [sssd] section in /etc/sssd/sssd.conf.
+#
+# [*sections*]
+# Optional. Hash. Default is a hash from sssd::params. The typical way of 
+# setting up services for SSSD is by using the sssd::service defined type. 
+# That poses a problem if you want to use Hiera for storing your configuration 
+# data. This parameter allows you to pass a hash that is used to automatically 
+# instantiate sssd::service types.
+#
 # [*backends*]
-# Optional. Hash. The typical way of setting up backends for SSSD is by using
-# the sssd::domain defined type. That poses a problem if you want to use
-# Hiera for storing your configuration data. This parameter allows you to
-# pass a hash that is used to automatically instantiate sssd::domain types.
-#
-# [*filter_users*]
-# Optional. Array. Default is 'root'. Exclude specific users from being
-# fetched using sssd. This is particularly useful for system accounts.
-#
-# [*filter_groups*]
-# Optional. Array. Default is 'root'. Exclude specific groups from being
-# fetched using sssd. This is particularly useful for system accounts.
+# Optional. Hash. Default is an empty hash. The typical way of setting up 
+# backends for SSSD is by using the sssd::domain defined type. That poses 
+# a problem if you want to use Hiera for storing your configuration data. 
+# This parameter allows you to pass a hash that is used to automatically 
+# instantiate sssd::domain types.
 #
 # [*make_home_dir*]
 # (true|false) Optional. Boolean. Default is false. Enable this if you
@@ -30,28 +38,34 @@
 #
 # === Example
 # class { 'sssd':
-#   domains => [ 'uni.adr.unbc.ca' ],
+#   domains => [ 'mydomain.com' ],
+#   options => { 'sbus_timeout' => '30' },
 # }
 #
 # === Authors
 # Nicholas Waller <code@nicwaller.com>
+# Riley Shott <rshott@sfu.ca>
 #
 # === Copyright
-# Copyright 2013 Nicholas Waller, unless otherwise noted.
+# Copyright 2013 Nicholas Waller
+# Copyright 2014 Simon Fraser University
 #
 class sssd (
   $domains,
-  $backends        = undef,
-  $make_home_dir   = false,
-  $filter_users    = [ 'root' ],
-  $filter_groups   = [ 'root' ]
-) {
+  $services      = ['nss', 'pam'],
+  $options       = {},
+  $sections      = $sssd::params::sections,
+  $backends      = {},
+  $make_home_dir = false,
+) inherits sssd::params {
   validate_array($domains)
-  validate_array($filter_users)
-  validate_array($filter_groups)
+  validate_array($services)
+  validate_hash($options)
+  validate_hash($sections)
+  validate_hash($backends)
   validate_bool($make_home_dir)
 
-  if $backends != undef {
+  unless empty($backends) {
     create_resources('sssd::domain', $backends)
   }
 
@@ -70,6 +84,10 @@ class sssd (
     target  => 'sssd_conf',
     content => template('sssd/header_sssd.conf.erb'),
     order   => 10,
+  }
+  
+  unless empty($sections) {
+    create_resources('sssd::service', $sections)
   }
 
   if $make_home_dir {

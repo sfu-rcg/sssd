@@ -2,9 +2,8 @@
 # Any changes you make to this file will be reverted on the next Puppet run.
 [sssd]
 config_file_version = 2
-services = nss, pam
+services = <%= @services.flatten.join(',') %>
 domains = <%= @domains.flatten.join(',') %>
-[nss]
-filter_groups = <%= @filter_groups.flatten.join(',') %>
-filter_users = <%= @filter_users.flatten.join(',') %>
-[pam]
+<% @options.each do |key, value| -%>
+<%= "#{key} = #{value}" %>
+<% end -%>
