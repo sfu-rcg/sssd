@@ -32,6 +32,11 @@
 # (true|false) Optional. Boolean. Default is false. Enable this if you
 # want network users to have a home directory created when they login.
 #
+# [*packages*]
+# Optional. Default comes from sssd::params based on osfamily fact. 
+# You can override which packages this module installs with this parameter.
+# Be sure to use an array if it's more than one package.
+#
 # === Requires
 # - [ripienaar/concat]
 # - [puppetlab/stdlib]
@@ -57,6 +62,7 @@ class sssd (
   $sections      = $sssd::params::sections,
   $backends      = {},
   $make_home_dir = false,
+  $packages      = $sssd::params::packages,
 ) inherits sssd::params {
   validate_array($domains)
   validate_array($services)
@@ -69,15 +75,15 @@ class sssd (
     create_resources('sssd::domain', $backends)
   }
 
-  package { $sssd::params::package:
-    ensure      => installed,
+  package { $packages:
+    ensure => installed,
   }
   
   concat { 'sssd_conf':
-    path        => '/etc/sssd/sssd.conf',
-    mode        => '0600',
+    path    => '/etc/sssd/sssd.conf',
+    mode    => '0600',
     # SSSD fails to start if file mode is anything other than 0600
-    require     => Package[$sssd::params::package],
+    require => Package[$packages],
   }
   
   concat::fragment{ 'sssd_conf_header':
@@ -107,6 +113,6 @@ class sssd (
   }
 
   service { $sssd::params::cron_service:
-    subscribe   => Service['sssd'],
+    subscribe => Service['sssd'],
   }
 }

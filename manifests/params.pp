@@ -22,7 +22,7 @@ class sssd::params {
                         'filter_users'  => 'root',
                       },
                     }, 
-                    'pam' => { 
+                    'pam' => {
                       'options' => {}
                     },
                   }
@@ -45,7 +45,7 @@ class sssd::params {
                       'options' => {}
                     },
                   }
-      $package = 'sssd'
+      $packages = 'sssd'
       $authconfig_sssd = '/usr/sbin/authconfig --enablesssd --enablesssdauth --enablelocauthorize --update'
       $cron_service = 'crond'
     }
