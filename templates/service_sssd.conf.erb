@@ -1,0 +1,9 @@
+
+[<%= @sssd_service %>]
+<% @options.each do |key, value| -%>
+<%- unless value.is_a? Array -%>
+<%= "#{key} = #{value}" %>
+<%- else -%>
+<%= "#{key} = #{value.flatten.join(',')}" %>
+<%- end -%>
+<% end -%>
