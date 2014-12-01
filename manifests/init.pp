@@ -30,7 +30,8 @@
 #
 # [*make_home_dir*]
 # (true|false) Optional. Boolean. Default is false. Enable this if you
-# want network users to have a home directory created when they login.
+# want network users to have a home directory created when they login. For now,
+# this option is only available for RedHat family machines.
 #
 # [*packages*]
 # Optional. Default comes from sssd::params based on osfamily fact. 
@@ -103,7 +104,8 @@ class sssd (
     create_resources('sssd::service', $sections)
   }
 
-  if $make_home_dir {
+  # Until further testing
+  if ($make_home_dir and $::osfamily != 'Debian') {
     class { 'sssd::homedir': }
   }
 
