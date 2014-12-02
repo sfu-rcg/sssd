@@ -44,8 +44,8 @@
 # everytime the sssd service is restarted.
 #
 # === Requires
-# - [ripienaar/concat]
-# - [puppetlab/stdlib]
+# - [puppetlabs/concat]
+# - [puppetlabs/stdlib]
 #
 # === Example
 # class { 'sssd':

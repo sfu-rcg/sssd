@@ -20,8 +20,8 @@
 # Optional. String. Defaults to '30'. This will be passed to the 
 # concat::fragment resource to set the order attribute.
 # === Requires
-# - [ripienaar/concat]
-# - [puppetlab/stdlib]
+# - [puppetlabs/concat]
+# - [puppetlabs/stdlib]
 #
 # === Example
 # sssd::domain { 'mydomain.com':
