@@ -18,8 +18,8 @@
 # concat::fragment resource to set the order attribute.
 #
 # === Requires
-# - [ripienaar/concat]
-# - [puppetlab/stdlib]
+# - [puppetlabs/concat]
+# - [puppetlabs/stdlib]
 #
 # === Example
 # sssd::service { 'nss':

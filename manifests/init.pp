@@ -30,11 +30,22 @@
 #
 # [*make_home_dir*]
 # (true|false) Optional. Boolean. Default is false. Enable this if you
-# want network users to have a home directory created when they login.
+# want network users to have a home directory created when they login. For now,
+# this option is only available for RedHat family machines.
+#
+# [*packages*]
+# Optional. Default comes from sssd::params based on osfamily fact. 
+# You can override which packages this module installs with this parameter.
+# Be sure to use an array if it's more than one package.
+#
+# [*manage_cron*]
+# (true|false) Optional. Boolean. Default is true. This parameter will
+# toggle whether or not this module attempts to restart the cron service
+# everytime the sssd service is restarted.
 #
 # === Requires
-# - [ripienaar/concat]
-# - [puppetlab/stdlib]
+# - [puppetlabs/concat]
+# - [puppetlabs/stdlib]
 #
 # === Example
 # class { 'sssd':
@@ -57,6 +68,8 @@ class sssd (
   $sections      = $sssd::params::sections,
   $backends      = {},
   $make_home_dir = false,
+  $packages      = $sssd::params::packages,
+  $manage_cron   = true,
 ) inherits sssd::params {
   validate_array($domains)
   validate_array($services)
@@ -64,20 +77,21 @@ class sssd (
   validate_hash($sections)
   validate_hash($backends)
   validate_bool($make_home_dir)
+  validate_bool($manage_cron)
 
   unless empty($backends) {
     create_resources('sssd::domain', $backends)
   }
 
-  package { 'sssd':
-    ensure      => installed,
+  package { $packages:
+    ensure => installed,
   }
   
   concat { 'sssd_conf':
-    path        => '/etc/sssd/sssd.conf',
-    mode        => '0600',
+    path    => '/etc/sssd/sssd.conf',
+    mode    => '0600',
     # SSSD fails to start if file mode is anything other than 0600
-    require     => Package['sssd'],
+    require => Package[$packages],
   }
   
   concat::fragment{ 'sssd_conf_header':
@@ -90,12 +104,13 @@ class sssd (
     create_resources('sssd::service', $sections)
   }
 
-  if $make_home_dir {
+  # Until further testing
+  if ($make_home_dir and $::osfamily != 'Debian') {
     class { 'sssd::homedir': }
   }
 
   exec { 'authconfig-sssd':
-    command     => '/usr/sbin/authconfig --enablesssd --enablesssdauth --enablelocauthorize --update',
+    command     => $sssd::params::authconfig_sssd,
     refreshonly => true,
     subscribe   => Concat['sssd_conf'],
   }
@@ -105,8 +120,10 @@ class sssd (
     enable      => true,
     subscribe   => Exec['authconfig-sssd'],
   }
-
-  service { 'crond':
-    subscribe   => Service['sssd'],
+  
+  if $manage_cron {
+    service { $sssd::params::cron_service:
+      subscribe => Service['sssd'],
+    }
   }
 }
